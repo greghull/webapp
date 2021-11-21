@@ -1,24 +1,23 @@
 (ns webapp.views.core
   (:require [clojure.string :as str]
             [hiccup.page :refer [html5 include-css include-js]]
-            [webapp.users.middleware :refer [*user*]]
-            [webapp.utils.doc :refer [url-for]]))
+            [webapp.settings :refer [url-for]]))
 
 (defn guest-menu []
   (list
    [:ul {:class "nav navbar-nav navbar-right"}
     [:li
-     [:a {:class "login" :href "/users/login"} "Login"]]
+     [:a {:class "login" :href (url-for :user-login)} "Login"]]
     [:li
-     [:a {:class "Register" :href "/users/register"} "Register"]]]))
+     [:a {:class "Register" :href (url-for :user-signup)} "Register"]]]))
 
 (defn user-menu [user]
   (list
    [:ul {:class "nav navbar-nav navbar-right"}
     [:li
-     [:a {:class "profile" :href "/users/profile"} (str (-> user :user/first-name) "'s Profile")]]
+     [:a {:class "profile" :href (url-for user)} (str (-> user :user/first-name) "'s Profile")]]
     [:li
-     [:a {:class "logout" :href "/users/logout"} "Logout"]]]))
+     [:a {:class "logout" :href (url-for :user-logout)} "Logout"]]]))
 
 (defn base [title & content]
   (html5
@@ -35,23 +34,23 @@
     (include-js "/js/site.js")]
    [:body content]))
 
-(defn with-layout [& [request title content]]
+(defn with-layout [& [req title content]]
   (base title
         [:header.navbar.navbar-default.navbar-static-top.navbar-default
          [:div.container
           [:div.navbar-header
            [:a.navbar-brand {:href "/"}
             [:strong "webapp"]]]
-          (if *user*
-            (user-menu *user*)
+          (if (:user req)
+            (user-menu (:user req))
             (guest-menu))]]
-        (when (:flash request)
+        (when (:flash req)
           [:div.container
-           [:div.alert.alert-info.alert-dismissible {:role "info"} (:flash request)
+           [:div.alert.alert-info.alert-dismissible {:role "info"} (:flash req)
             [:button.btn-close {:type "button" :data-bs-dismiss "alert" :aria-label "Close"}]]])
-        (when (:error request)
+        (when (:error req)
           [:div.container
-           [:div.alert.alert-danger.alert-dismissible {:role "info"} (:error request)
+           [:div.alert.alert-danger.alert-dismissible {:role "info"} (:error req)
             [:button.btn-close {:type "button" :data-bs-dismiss "alert" :aria-label "Close"}]]])
         [:div.container content]))
 
