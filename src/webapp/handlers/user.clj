@@ -3,7 +3,7 @@
             [webapp.forms.core :refer [input submit-button form-html]]
             [webapp.views.core :refer [with-layout table]]
             [struct.core :as st]
-            [webapp.handlers.docs :refer [form doc-list-view view error?]]
+            [webapp.handlers.docs :refer [form list-view view error?]]
             [webapp.db.validators :refer [unique-to]]))
 
 (def profile-form
@@ -66,8 +66,7 @@
            :flash (str "Your changes to " (-> req :doc :user/first-name)
                        " " (-> req :doc :user/last-name) "'s profile have been saved."))))
 
-
-(defmethod doc-list-view :user [req]
+(defmethod list-view :user [req]
   (with-layout req "User List"
     [:div
      (table (:document-list req)

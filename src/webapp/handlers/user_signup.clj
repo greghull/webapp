@@ -4,7 +4,7 @@
             [webapp.views.core :refer [with-layout]]
             [struct.core :as st]
             [webapp.db.core :as db]
-            [crypto.password.bcrypt :as password]
+            [buddy.hashers :as hashers]
             [webapp.db.validators :refer [does-not-exist]]
             [webapp.handlers.docs :refer [type-handler document document-handler form view error? save]]))
 
@@ -52,7 +52,8 @@
                   :doc
                   (merge (-> req :form :cleaned-data))
                   (dissoc :user/confirm-password)
-                  (assoc :user/password (password/encrypt (-> req :form :cleaned-data :user/password))))]
+                  (assoc :user/password (hashers/derive (-> req :form :cleaned-data :user/password)))
+                  (assoc :user/email-confirmed? false))]
       (try (assoc req :doc (db/put! doc))
            (catch Exception e (assoc req :error (ex-message e)))))))
 
@@ -70,4 +71,4 @@
   (document-handler req))
 
 (defmethod type-handler [:post :user-signup] [req]
-  (document-handler req))
+  (db/transaction (document-handler req)))

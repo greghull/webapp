@@ -131,8 +131,9 @@
 (defmethod document-list :edn [req]
     (assoc req :document-list (db/query)))
 
-(defmulti doc-list-view #(-> % :route-params :type keyword))
-(defmethod doc-list-view :default [req]
+(defmulti list-view #(-> % :route-params :type keyword))
+
+(defmethod list-view :default [req]
   (with-layout req "Documents"
     [:div
      (table (:document-list req)
@@ -142,7 +143,6 @@
                      :meta/type "Type"
                      title-for "Description"}
             :keys [:meta/id :meta/type title-for])]))
-
 
 (defmulti type-handler
   (fn [req] [(:request-method req) (-> req :route-params :type keyword)]))
@@ -158,7 +158,7 @@
   (some-> req
           user
           document-list
-          doc-list-view))
+          list-view))
 
 (defn doc-routes []
   (routes

@@ -20,7 +20,9 @@
                  [hiccup "1.0.5"]
                  [funcool/struct "1.3.0"]
                  [com.draines/postal "2.0.4"]
-                 [crypto-password "0.3.0"]]
+                 [buddy/buddy-hashers "1.8.1"]
+                 [buddy/buddy-sign "3.4.1"]]
+  
   
   :main webapp.core
   
