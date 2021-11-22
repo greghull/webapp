@@ -7,7 +7,8 @@
             [struct.core :as st]
             [webapp.utils.doc :refer [title-for]]
             [webapp.views.forms :refer [text-area input submit-button validate-form form-params form-html]]
-            [webapp.views.layout :refer [with-layout table]]))
+            [webapp.views.layout :refer [with-layout table]]
+            [webapp.handlers.guards :refer [require-user]]))
 
 (def doc-form
   {:doc
@@ -151,6 +152,7 @@
 
 (defmethod type-handler [:get ::default] [req]
   (some-> req
+          require-user
           document-list
           list-view))
 

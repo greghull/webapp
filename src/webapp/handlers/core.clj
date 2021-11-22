@@ -8,7 +8,7 @@
             [mount.core :as mount]
             [webapp.settings :refer [settings]]
             [webapp.views.layout :refer [with-layout not-found]]
-            [webapp.handlers.middleware :refer [wrap-user]]
+            [webapp.handlers.guards :refer [wrap-user wrap-guardian]]
 
             [webapp.handlers.user]
             [webapp.handlers.user-login]
@@ -53,6 +53,7 @@
 (defn define-app []
   (-> (define-routes)
       (wrap-user)
+      (wrap-guardian)
       (logger/wrap-with-logger)
       (wrap-defaults site-defaults)))
 

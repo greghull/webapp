@@ -44,7 +44,7 @@
 (defmethod view [:post :user-login] [req]
   (if (error? req)
     (login-view req)
-    (merge (response/redirect "/")
+    (merge (response/redirect (or (-> req :session :referer) "/"))
            {:flash (str "Welcome back " (-> req :doc :user/first-name)
                        " " (-> req :doc :user/last-name) ".")
             :session (assoc (:session req) :id (-> req :doc :meta/id))})))
