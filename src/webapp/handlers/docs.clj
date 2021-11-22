@@ -35,9 +35,6 @@
 (defn doc-as-str [d]
   (with-out-str (binding [*print-right-margin* 80] (pprint d))))
 
-(defn user [req]
-  (assoc req :user (some-> req :session :id db/fetch)))
-
 (defmulti default-document #(-> % :route-params :type keyword))
 (defmethod default-document :default [req]
   {:meta/type (get-in req [:route-params :type])})
@@ -154,7 +151,6 @@
 
 (defmethod type-handler [:get ::default] [req]
   (some-> req
-          user
           document-list
           list-view))
 
