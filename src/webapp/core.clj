@@ -17,4 +17,4 @@
 (defn -main
   ;;[& args]
   [& _]
-    (mount/start))
+  (mount/start))

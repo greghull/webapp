@@ -3,7 +3,8 @@
             [webapp.views.forms :refer [input submit-button form-html]]
             [webapp.views.layout :refer [with-layout table]]
             [struct.core :as st]
-            [webapp.handlers.docs :refer [form list-view view error?]]
+            [webapp.handlers.docs :refer [document-handler form list-view view error?]]
+            [webapp.db.core :refer [transaction]]
             [webapp.db.validators :refer [unique-to]]))
 
 (def profile-form
@@ -75,3 +76,11 @@
             :labels {:user/first-name "First Name"
                      :user/last-name "Last Name"}
             :keys [:user/first-name :user/last-name :user/email :address/zip])]))
+
+(defmethod document-handler [:post :user]
+  "User document handler needs to be run in a transaction to make sure there
+isn't a race condition between checking if an email address is already in 
+use and letting the user claim that email address."
+  [req]
+  (let [handler (get-method document-handler [:post ::default])]
+    (transaction (handler req))))

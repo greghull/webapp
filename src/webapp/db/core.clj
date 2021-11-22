@@ -29,7 +29,8 @@
     x))
 
 (defn do-in-transaction
-  "Execute F inside a DB transaction. Prefer macro form `transaction` to using this directly."
+  "Execute F inside a DB transaction. Prefer macro form `transaction` to using
+   this directly."
   [f]
   (jdbc/with-db-transaction [tx *db*]
     (binding [*db* tx]
@@ -52,7 +53,8 @@
                         type TEXT AS (json_extract(fields, '$.meta/type')));")
     (jdbc/execute! tx "CREATE UNIQUE INDEX IF NOT EXISTS id_index ON docs(id);")
     (jdbc/execute! tx "CREATE INDEX IF NOT EXISTS type_index ON docs(type);")
-    (jdbc/execute! tx "CREATE UNIQUE INDEX IF NOT EXISTS email_index ON docs(json_extract(fields, '$.user/email'));")))
+    (jdbc/execute! tx "CREATE UNIQUE INDEX IF NOT EXISTS email_index 
+                       ON docs(json_extract(fields, '$.user/email'));")))
 
 (defn drop-db! []
   (jdbc/with-db-transaction [tx *db*]
@@ -60,19 +62,23 @@
 
 (defn reset-db! []
   (transaction
-   (drop-db!)
-   (create-db!)))
+    (drop-db!)
+    (create-db!)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; CRUD Operations
 
-(defn delete! [id]
+(defn delete!
+  "Deletes the document from the database with the specified `id`."
+  [id]
   (jdbc/execute! *db* ["DELETE FROM docs
                       WHERE id = ?"
                        id]))
 
 (defn new-id
-  "Generates a new id for the supplied document.   Uses the id supplied in the document if it's present and valid"
+  "Generates a new id for the supplied document.   Uses the id supplied in
+   the document if it's present and valid"
   [& [d]]
   (let [id (:meta/id d)]
     (cond
@@ -82,10 +88,14 @@
 
 (defn put!
   "Adds the document `d` to the database.
-   If a document with the same meta/id already exists then that document is replaced, otherwise a new document is inserted.
-   If no meta/id is specified, then the document will be assigned a ulid id.
-   If a document cannot be updated/inserted do to conflict then an exception is thrown,
-   otherwise returns the document."
+  
+  If a document with the same :meta/id already exists then that document is replaced,
+  otherwise a new document is inserted.
+  
+  If no :meta/id is specified, then the document will be assigned a ulid id.
+  
+  If a document cannot be updated or inserted do to conflict then an exception is thrown,
+  otherwise returns the document."
   [d]
   (let [doc (assoc d :meta/id (new-id d))
         json-string (json/generate-string doc)]
@@ -137,10 +147,10 @@
      (map parse-doc rows))))
 
 (defn exists?
-  "Returns true if a document exists with the specified key `k` = `value`"
-  [k value]
+  "Returns true if a document exists with the specified key `k` = `v`"
+  [k v]
   (some? (not-empty (jdbc/query *db*
                                 [(str "SELECT id FROM docs
                                   WHERE json_extract(fields, ?) = ?
                                   LIMIT 1")
-                                 (key-to-field k) value]))))
+                                 (key-to-field k) v]))))

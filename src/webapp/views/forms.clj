@@ -73,20 +73,6 @@
   [request]
   (reduce (fn [acc [k v]] (assoc acc (keyword k) v)) {} (:form-params request)))
 
-(defn process
-  "Returns a map with the keys [:request :raw-data :errors :cleaned-data :schema] by extracting 
-   and validating the form fieds specified in `form-schema` from the ring request `req`.
-   raw-data can be populated with the initial values in `initial`."
-  [form-schema & {:keys [req initial]}]
-  (if (= (:request-method req) :post)
-    (let [raw-data (form-params req)
-          [errors cleaned-data] (validate-form form-schema (merge initial raw-data))]
-      {:request req :raw-data raw-data :errors errors :cleaned-data cleaned-data :schema form-schema :initial initial})
-    {:request req :schema form-schema :initial initial}))
-
-(defn action [form]
-  (-> form :request :uri))
-
 (defn input [req k]
   (let [form (:form req)
         widget (or (-> form :schema k :widget) (default-widget form k))
