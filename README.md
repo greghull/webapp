@@ -1,14 +1,25 @@
 # webapp
 
-A Clojure library designed to ... well, that part is up to you.
+A Clojure web framework for getting sites up and running quickly.
+
+Will Feature:
+
+- User authentication
+- Stripe Payments
+- Email 
+- Document-based Database
+- Basic Administration
 
 ## Usage
 
-FIXME
+$ lein uberjar
+$ java -jar <path to webapp-standalone jar>
+
+Or run it from your repl by calling (mount/start) in webapp.core
 
 ## License
 
-Copyright © 2021 FIXME
+Copyright © 2021 Greg Hull
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at
