@@ -1,9 +1,9 @@
 (ns webapp.handlers.user-password
   (:require [ring.util.response :as response]
-            [webapp.forms.core :as forms :refer [input submit-button form-html]]
-            [webapp.views.core :refer [with-layout]]
+            [webapp.views.forms :as forms :refer [input submit-button form-html]]
+            [webapp.views.layout :refer [with-layout]]
             [struct.core :as st]
-            [webapp.users.core :as u]
+            [webapp.db.user :as u]
             [webapp.handlers.docs :refer [type-handler document document-handler form view error? save]]))
 
 

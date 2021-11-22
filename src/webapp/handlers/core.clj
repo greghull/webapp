@@ -7,7 +7,7 @@
             [webapp.handlers.docs :refer [doc-routes]]
             [mount.core :as mount]
             [webapp.settings :refer [settings]]
-            [webapp.views.core :refer [with-layout not-found]]
+            [webapp.views.layout :refer [with-layout not-found]]
             [webapp.handlers.middleware :refer [wrap-user]]
 
             [webapp.handlers.user]

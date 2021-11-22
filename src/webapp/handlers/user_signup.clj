@@ -1,7 +1,7 @@
 (ns webapp.handlers.user-signup
   (:require [ring.util.response :as response]
-            [webapp.forms.core :as forms :refer [input submit-button form-html]]
-            [webapp.views.core :refer [with-layout]]
+            [webapp.views.forms :as forms :refer [input submit-button form-html]]
+            [webapp.views.layout :refer [with-layout]]
             [struct.core :as st]
             [webapp.db.core :as db]
             [buddy.hashers :as hashers]

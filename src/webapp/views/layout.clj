@@ -1,4 +1,4 @@
-(ns webapp.views.core
+(ns webapp.views.layout
   (:require [clojure.string :as str]
             [hiccup.page :refer [html5 include-css include-js]]
             [webapp.settings :refer [url-for]]))

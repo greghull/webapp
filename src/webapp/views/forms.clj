@@ -1,4 +1,4 @@
-(ns webapp.forms.core
+(ns webapp.views.forms
   (:require [clojure.string :as str]
             [struct.core :as st]
             [hiccup.form :as hiccup]

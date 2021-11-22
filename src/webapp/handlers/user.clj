@@ -1,7 +1,7 @@
 (ns webapp.handlers.user
   (:require [ring.util.response :as response]
-            [webapp.forms.core :refer [input submit-button form-html]]
-            [webapp.views.core :refer [with-layout table]]
+            [webapp.views.forms :refer [input submit-button form-html]]
+            [webapp.views.layout :refer [with-layout table]]
             [struct.core :as st]
             [webapp.handlers.docs :refer [form list-view view error?]]
             [webapp.db.validators :refer [unique-to]]))
@@ -72,7 +72,6 @@
      (table (:document-list req)
             :heading "Users"
             :caption "List of Users"
-            :url "/users/profile/"
             :labels {:user/first-name "First Name"
                      :user/last-name "Last Name"}
             :keys [:user/first-name :user/last-name :user/email :address/zip])]))

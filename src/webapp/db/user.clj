@@ -1,4 +1,4 @@
-(ns webapp.users.core
+(ns webapp.db.user
   (:require
    [webapp.db.core :as db]
    [buddy.hashers :as hashers]))

@@ -1,9 +1,9 @@
 (ns webapp.handlers.user-login
   (:require [ring.util.response :as response]
-            [webapp.users.core :as u]
-            [webapp.forms.core :as forms :refer [input submit-button form-html]]
-            [webapp.views.core :refer [with-layout]]
             [struct.core :as st]
+            [webapp.db.user :as u]
+            [webapp.views.forms :as forms :refer [input submit-button form-html]]
+            [webapp.views.layout :refer [with-layout]]
             [webapp.handlers.docs :refer [type-handler document document-handler form view error? save]]))
 
 (def login-form

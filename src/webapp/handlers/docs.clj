@@ -6,8 +6,8 @@
             [webapp.db.core :as db]
             [struct.core :as st]
             [webapp.utils.doc :refer [title-for]]
-            [webapp.forms.core :refer [text-area input submit-button validate-form form-params form-html]]
-            [webapp.views.core :refer [with-layout table]]))
+            [webapp.views.forms :refer [text-area input submit-button validate-form form-params form-html]]
+            [webapp.views.layout :refer [with-layout table]]))
 
 (def doc-form
   {:doc
