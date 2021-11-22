@@ -108,14 +108,12 @@
 
 (defmethod document-handler [:get ::default] [req]
   (some-> req
-          user
           document
           form
           view))
 
 (defmethod document-handler [:post ::default] [req]
   (some-> req
-          user
           document
           form
           validate
