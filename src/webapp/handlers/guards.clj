@@ -1,7 +1,8 @@
 (ns webapp.handlers.guards
   (:require [ring.util.response :as response]
             [webapp.db.core :as db]
-            [webapp.settings :refer [settings url-for]]))
+            [webapp.settings :refer [settings url-for]])
+  (:import (clojure.lang ExceptionInfo)))
 
 (defn wrap-user
   "Ring middleware to add a :user document to a request."
@@ -16,26 +17,31 @@
   (fn [req]
     (try
       (handler req)
-      (catch clojure.lang.ExceptionInfo e
-        (prn "!! CAUGHT !!" e)
+      (catch ExceptionInfo e
         (merge (response/redirect (or (-> e ex-data :redirect) "/"))
                {:flash (ex-message e)
                 :session (assoc (:session req) :referer (-> e ex-data :referer))})))))
 
+(defn user? [req]
+  (some? (:user req)))
+
+(defn admin? [req]
+  (some? (some #{(some-> req :user :user/email)} (:admins settings))))
+
 (defn require-user [req]
-  (if (nil? (:user req))
+  (if (user? req)
+    req
     (throw
-     (ex-info "You must login to access this page."
-              {:redirect (url-for :user-login)
-               :referer (:uri req)}))
-    req))
+      (ex-info "You must login to access this page."
+               {:redirect (url-for :user-login)
+                :referer  (:uri req)}))))
 
 (defn require-owner [_])
 
 (defn require-admin [req]
-  (let [user (-> req require-user :user)]
-    (if (some #{(:user/email user)} (:admins settings))
+    (if (and (require-user req) (admin? req))
       req
-      (ex-info "You do not have permission to access this page."
+      (throw
+        (ex-info "You do not have permission to access this page."
                {:redirect "/"}))))
 

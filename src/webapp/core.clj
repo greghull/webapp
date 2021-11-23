@@ -18,3 +18,5 @@
   ;;[& args]
   [& _]
   (mount/start))
+
+(-main)

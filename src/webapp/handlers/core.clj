@@ -1,49 +1,57 @@
 (ns webapp.handlers.core
-  (:require [compojure.core :refer [GET routes context]]
+  (:require [compojure.core :refer [GET ANY routes context]]
             [clojure.pprint :refer [pprint]]
             [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [ring.logger :as logger]
-            [webapp.handlers.docs :refer [doc-routes]]
             [mount.core :as mount]
             [webapp.settings :refer [settings]]
             [webapp.views.layout :refer [with-layout not-found]]
             [webapp.handlers.guards :refer [wrap-user wrap-guardian]]
+            [webapp.handlers.docs :refer [document-handler]]
+            [webapp.handlers.views :refer [view-handler]]
 
             [webapp.handlers.user]
             [webapp.handlers.user-login]
             [webapp.handlers.user-signup]
             [webapp.handlers.user-password]))
 
+(defn doc-routes []
+  (routes
+    (ANY "/:type" req
+         (view-handler req))
+    (ANY "/:type/:id" req
+         (document-handler req))))
+
 (defn define-routes []
   (routes
-   (GET "/" request
-     (with-layout request "Home Page"
+   (GET "/" req
+     (with-layout req "Home Page"
        [:h1 "Hello World"]))
 
-   (GET "/session" request
-     (with-layout request "Your Session"
+   (GET "/session" req
+     (with-layout req "Your Session"
        [:div
         [:h1 "Your Session"]
-        [:pre (with-out-str (pprint (:session request)))]]))
+        [:pre (with-out-str (pprint (:session req)))]]))
 
-   (GET "/request" request
-     (with-layout request "Your Request"
+   (GET "/request" req
+     (with-layout req "Your Request"
        [:div
         [:h1 "Your Request"]
-        [:pre (with-out-str (pprint request))]]))
+        [:pre (with-out-str (pprint req))]]))
 
-   (GET "/settings" request
-     (with-layout request "Site Settings"
+   (GET "/settings" req
+     (with-layout req "Site Settings"
        [:div
         [:h1 "Active Site Settings"]
         [:pre (with-out-str (pprint settings))]]))
 
-   (GET "/request/:testing" request
-     (with-layout request "Your Request"
+   (GET "/request/:testing" req
+     (with-layout req "Your Request"
        [:div
         [:h1 "Your Request"]
-        [:pre (with-out-str (pprint request))]]))
+        [:pre (with-out-str (pprint req))]]))
 
    (context (get settings :doc-root) []
      (doc-routes))

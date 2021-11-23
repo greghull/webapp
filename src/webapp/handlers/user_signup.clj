@@ -1,14 +1,15 @@
 (ns webapp.handlers.user-signup
   (:require [ring.util.response :as response]
-            [webapp.views.forms :as forms :refer [input submit-button form-html]]
+            [webapp.views.forms :refer [input submit-button form-html]]
             [webapp.views.layout :refer [with-layout]]
             [struct.core :as st]
             [webapp.db.core :as db]
             [buddy.hashers :as hashers]
             [webapp.db.validators :refer [does-not-exist]]
-            [webapp.handlers.docs :refer [type-handler document document-handler form view error? save]]))
+            [webapp.handlers.views :refer [view-handler]]
+            [webapp.handlers.docs :refer [document document-handler form-schema render template success save]]))
 
-(def signup-form
+(defmethod form-schema :user-signup [_]
   {:user/first-name
    {:label "Your First Name"
     :validation [st/required st/string]}
@@ -25,7 +26,7 @@
    {:label "Confirm Password"
     :validation [st/required [st/identical-to :user/password]]}})
 
-(defn signup-view [req]
+(defmethod template :user-signup [req]
   (with-layout req "User Registration"
     [:div.registration-form
      [:h2 "Register for a new account"]
@@ -38,12 +39,7 @@
                 (submit-button "Create Account"))]))
 
 (defmethod document :user-signup [req]
-  (if (some? (get-in req [:route-params :id]))
-    nil
-    (assoc req :doc {:meta/type "user"})))
-
-(defmethod form :user-signup [req]
-  (assoc req :form {:schema signup-form}))
+    (assoc req :doc {:meta/type "user"}))
 
 (defmethod save :user-signup [req]
   (if (-> req :form :errors)
@@ -57,18 +53,16 @@
       (try (assoc req :doc (db/put! doc))
            (catch Exception e (assoc req :error (ex-message e)))))))
 
-(defmethod view [:get :user-signup] [req]
-  (signup-view req))
+(defmethod success :user-signup [req]
+  (let [doc (:doc req)]
+    (prn "!! DOC !!  " doc)
+    (merge (response/redirect "/")
+     {:flash (str "Welcome " (:user/first-name doc)
+                " " (:user/last-name doc) ".  You are now registered.")
+       :session {:id (:meta/id doc)}})))
 
-(defmethod view [:post :user-signup] [req]
-  (if (error? req)
-    (signup-view req)
-    (assoc (response/redirect "/")
-           :flash (str "Welcome " (-> req :doc :user/first-name)
-                       " " (-> req :doc :user/last-name) ".  You are now registered."))))
-
-(defmethod type-handler [:get :user-signup] [req]
+(defmethod view-handler [:get :user-signup] [req]
   (document-handler req))
 
-(defmethod type-handler [:post :user-signup] [req]
+(defmethod view-handler [:post :user-signup] [req]
   (db/transaction (document-handler req)))

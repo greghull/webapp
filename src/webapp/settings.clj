@@ -18,3 +18,4 @@
   (cond
     (keyword? x) (str (get settings :doc-root) "/" (name x))
     (map? x) (str (get settings :doc-root) "/"  (or (:meta/type x) "edn")   "/" (:meta/id x))))
+

@@ -1,13 +1,14 @@
 (ns webapp.handlers.user-password
   (:require [ring.util.response :as response]
-            [webapp.views.forms :as forms :refer [input submit-button form-html]]
+            [webapp.views.forms :refer [input submit-button form-html]]
             [webapp.views.layout :refer [with-layout]]
             [struct.core :as st]
             [webapp.db.user :as u]
-            [webapp.handlers.docs :refer [type-handler document document-handler form view error? save]]))
+            [webapp.handlers.views :refer [view-handler]]
+            [webapp.handlers.docs :refer [document document-handler form-schema success template save]]))
 
 
-(def password-change-form
+(defmethod form-schema :user-password [_]
   {:old-password
    {:label "Old Password"
     :validation [st/required]}
@@ -18,7 +19,7 @@
    {:label "Confirm New Password"
     :validation [st/required [st/identical-to :password]]}})
 
-(defn password-change-view [req]
+(defmethod template :user-password [req]
   (with-layout req "Change Your Password"
     [:div.login-form
      [:h2 "Change Password for " (-> req :user :user/first-name) " " (-> req :user :user/last-name)]
@@ -27,9 +28,6 @@
                 (input req :password)
                 (input req :confirm-password)
                 (submit-button "Change Password"))]))
-
-(defmethod form :user-password [req]
-  (assoc req :form {:schema password-change-form}))
 
 (defmethod document :user-password [req]
   (assoc req :doc nil))
@@ -43,17 +41,12 @@
       req
       (assoc-in req [:form :errors :old-password] "Your old password is incorrect."))))
 
-(defmethod view [:get :user-password] [req]
-  (password-change-view req))
-
-(defmethod view [:post :user-password] [req]
-  (if (error? req)
-    (password-change-view req)
+(defmethod success :user-password [_]
     (assoc (response/redirect "/")
-           :flash "Your password has been updated.")))
+           :flash "Your password has been updated."))
 
-(defmethod type-handler [:get :user-password] [req]
+(defmethod view-handler [:get :user-password] [req]
   (document-handler req))
 
-(defmethod type-handler [:post :user-password] [req]
+(defmethod view-handler [:post :user-password] [req]
   (document-handler req))

@@ -2,11 +2,12 @@
   (:require [ring.util.response :as response]
             [struct.core :as st]
             [webapp.db.user :as u]
-            [webapp.views.forms :as forms :refer [input submit-button form-html]]
+            [webapp.views.forms :refer [input submit-button form-html]]
             [webapp.views.layout :refer [with-layout]]
-            [webapp.handlers.docs :refer [type-handler document document-handler form view error? save]]))
+            [webapp.handlers.views :refer [view-handler]]
+            [webapp.handlers.docs :refer [form-schema template document document-handler form success error? save]]))
 
-(def login-form
+(defmethod form-schema :user-login [_]
   {:email
    {:label "Your Email Address"
     :validation [st/required st/email]}
@@ -14,7 +15,7 @@
    {:label "Your Password"
     :validation [st/required]}})
 
-(defn login-view [req]
+(defmethod template :user-login [req]
   (let [form (:form req)]
     (with-layout req "User Login"
       [:div.login-form
@@ -30,30 +31,22 @@
     nil
     (assoc req :doc {:meta/type "user"})))
 
-(defmethod form :user-login [req]
-  (assoc req :form {:schema login-form}))
-
 (defmethod save :user-login [req]
   (if-let [user (u/auth-user (-> req :form :cleaned-data :email) (-> req :form :cleaned-data :password))]
     (assoc req :doc user)
     (assoc-in req [:form :errors :auth] "Invalid email or password")))
 
-(defmethod view [:get :user-login] [req]
-  (login-view req))
+(defmethod success :user-login [req]
+  (merge (response/redirect (or (-> req :session :referer) "/"))
+         {:flash (str "Welcome back " (-> req :doc :user/first-name)
+                      " " (-> req :doc :user/last-name) ".")
+          :session (assoc (:session req) :id (-> req :doc :meta/id))}))
 
-(defmethod view [:post :user-login] [req]
-  (if (error? req)
-    (login-view req)
-    (merge (response/redirect (or (-> req :session :referer) "/"))
-           {:flash (str "Welcome back " (-> req :doc :user/first-name)
-                       " " (-> req :doc :user/last-name) ".")
-            :session (assoc (:session req) :id (-> req :doc :meta/id))})))
-
-(defmethod type-handler [:get :user-login] [req]
+(defmethod view-handler [:get :user-login] [req]
   (document-handler req))
 
-(defmethod type-handler [:post :user-login] [req]
+(defmethod view-handler [:post :user-login] [req]
   (document-handler req))
 
-(defmethod type-handler [:get :user-logout] [_]
+(defmethod view-handler [:get :user-logout] [_]
   (merge (response/redirect "/") {:session nil :flash "You are now logged out."}))
