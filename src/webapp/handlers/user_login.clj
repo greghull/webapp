@@ -4,8 +4,9 @@
             [webapp.db.user :as u]
             [webapp.views.forms :refer [input submit-button form-html]]
             [webapp.views.layout :refer [with-layout]]
-            [webapp.handlers.views :refer [view-handler]]
-            [webapp.handlers.docs :refer [form-schema template document document-handler form success error? save]]))
+            [webapp.handlers.view :refer [view-handler]]
+            [webapp.handlers.form :refer [form-handler form-schema form success
+                                          error? task template]]))
 
 (defmethod form-schema :user-login [_]
   {:email
@@ -16,37 +17,30 @@
     :validation [st/required]}})
 
 (defmethod template :user-login [req]
-  (let [form (:form req)]
-    (with-layout req "User Login"
-      [:div.login-form
-       [:h2 "Login with existing account"]
-       (when-let [error (-> form :errors :auth)] [:div.alert.alert-danger error])
-       (form-html req
-                  (input req :email)
-                  (input req :password)
-                  (submit-button "Login"))])))
+  (with-layout req "User Login"
+    [:div.login-form
+     [:h2 "Login with existing account"]
+     (when-let [error (-> req :handler/form :errors :auth)]
+       [:div.alert.alert-danger error])
+     (form-html req
+                (input req :email)
+                (input req :password)
+                (submit-button "Login"))]))
 
-(defmethod document :user-login [req]
-  (if (some? (get-in req [:route-params :id]))
-    nil
-    (assoc req :doc {:meta/type "user"})))
-
-(defmethod save :user-login [req]
-  (if-let [user (u/auth-user (-> req :form :cleaned-data :email) (-> req :form :cleaned-data :password))]
-    (assoc req :doc user)
-    (assoc-in req [:form :errors :auth] "Invalid email or password")))
+(defmethod task :user-login [req]
+  (if-let [user (u/auth-user (-> req :handler/form :cleaned-data :email)
+                             (-> req :handler/form :cleaned-data :password))]
+    (assoc req :user user)
+    (assoc-in req [:handler/form :errors :auth] "Invalid email or password")))
 
 (defmethod success :user-login [req]
   (merge (response/redirect (or (-> req :session :referer) "/"))
-         {:flash (str "Welcome back " (-> req :doc :user/first-name)
-                      " " (-> req :doc :user/last-name) ".")
-          :session (assoc (:session req) :id (-> req :doc :meta/id))}))
+         {:flash (str "Welcome back " (-> req :user :user/first-name)
+                      " " (-> req :user :user/last-name) ".")
+          :session (assoc (:session req) :id (-> req :user :meta/id))}))
 
-(defmethod view-handler [:get :user-login] [req]
-  (document-handler req))
+(defmethod view-handler :user-login [req]
+  (form-handler req))
 
-(defmethod view-handler [:post :user-login] [req]
-  (document-handler req))
-
-(defmethod view-handler [:get :user-logout] [_]
+(defmethod view-handler :user-logout [_]
   (merge (response/redirect "/") {:session nil :flash "You are now logged out."}))

@@ -22,13 +22,19 @@
                {:flash (ex-message e)
                 :session (assoc (:session req) :referer (-> e ex-data :referer))})))))
 
-(defn user? [req]
+(defn user?
+  "Given a ring request map `req` returns true if there is a logged-in user associated
+  with the request session."
+  [req]
   (some? (:user req)))
 
-(defn admin? [req]
+(defn admin?
+  "Given a ring request map `req` returns true if the logged-in user associated with
+  the request is an admin."
+  [req]
   (some? (some #{(some-> req :user :user/email)} (:admins settings))))
 
-(defn require-user [req]
+(defn require-login [req]
   (if (user? req)
     req
     (throw
@@ -39,7 +45,7 @@
 (defn require-owner [_])
 
 (defn require-admin [req]
-    (if (and (require-user req) (admin? req))
+    (if (and (require-login req) (admin? req))
       req
       (throw
         (ex-info "You do not have permission to access this page."

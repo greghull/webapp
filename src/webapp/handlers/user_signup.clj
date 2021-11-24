@@ -6,8 +6,9 @@
             [webapp.db.core :as db]
             [buddy.hashers :as hashers]
             [webapp.db.validators :refer [does-not-exist]]
-            [webapp.handlers.views :refer [view-handler]]
-            [webapp.handlers.docs :refer [document document-handler form-schema render template success save]]))
+            [webapp.handlers.view :refer [view-handler]]
+            [webapp.handlers.form :refer [error? form-schema render template success]]
+            [webapp.handlers.document :refer [document document-handler save]]))
 
 (defmethod form-schema :user-signup [_]
   {:user/first-name
@@ -38,31 +39,25 @@
                 (input req :user/confirm-password)
                 (submit-button "Create Account"))]))
 
-(defmethod document :user-signup [req]
-    (assoc req :doc {:meta/type "user"}))
-
 (defmethod save :user-signup [req]
-  (if (-> req :form :errors)
+  (if (error? req)
     req
     (let [doc (-> req
-                  :doc
-                  (merge (-> req :form :cleaned-data))
+                  :handler/doc
+                  (merge (-> req :handler/form :cleaned-data))
                   (dissoc :user/confirm-password)
-                  (assoc :user/password (hashers/derive (-> req :form :cleaned-data :user/password)))
+                  (assoc :user/password (hashers/derive (-> req :handler/form :cleaned-data :user/password)))
                   (assoc :user/email-confirmed? false))]
-      (try (assoc req :doc (db/put! doc))
+      (try (assoc req :handler/doc (db/put! doc))
            (catch Exception e (assoc req :error (ex-message e)))))))
 
 (defmethod success :user-signup [req]
-  (let [doc (:doc req)]
-    (prn "!! DOC !!  " doc)
+  (let [doc (:handler/doc req)]
     (merge (response/redirect "/")
      {:flash (str "Welcome " (:user/first-name doc)
                 " " (:user/last-name doc) ".  You are now registered.")
        :session {:id (:meta/id doc)}})))
 
-(defmethod view-handler [:get :user-signup] [req]
+(defmethod view-handler :user-signup [req]
   (document-handler req))
 
-(defmethod view-handler [:post :user-signup] [req]
-  (db/transaction (document-handler req)))

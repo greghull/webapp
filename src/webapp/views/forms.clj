@@ -74,7 +74,7 @@
   (reduce (fn [acc [k v]] (assoc acc (keyword k) v)) {} (:form-params request)))
 
 (defn input [req k]
-  (let [form (:form req)
+  (let [form (:handler/form req)
         widget (or (-> form :schema k :widget) (default-widget form k))
         label (or (-> form :schema k :label) (str/capitalize (name k)))
         value (or (-> form :raw-data k) (-> form :initial k))

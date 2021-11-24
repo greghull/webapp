@@ -1,6 +1,7 @@
 (ns webapp.core
   (:gen-class)
-  (:require [ring.adapter.jetty :as ring]
+  (:require [clojure.repl :refer [doc]]
+            [ring.adapter.jetty :as ring]
             [webapp.handlers.core :refer [app]]
             [webapp.settings :refer [settings]]
             [mount.core :as mount]))

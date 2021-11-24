@@ -3,9 +3,11 @@
             [webapp.views.forms :refer [input submit-button form-html]]
             [webapp.views.layout :refer [with-layout table]]
             [struct.core :as st]
-            [webapp.settings :refer [url-for]] ;[webapp.handlers.views :refer [render]]]
-            [webapp.handlers.docs :refer [template document-handler form-schema success error?]]
-            [webapp.db.core :refer [transaction]]
+            [webapp.settings :refer [url-for]]
+
+            [webapp.handlers.table :refer [table-template]]
+            [webapp.handlers.form :refer [template form-schema success error?]]
+            [webapp.handlers.document :refer [document-handler]]
             [webapp.db.validators :refer [unique-to]]))
 
 (defmethod form-schema :user [_]
@@ -57,25 +59,17 @@
 
 (defmethod success :user [req]
   (assoc (response/redirect (url-for :user))
-    :flash (str "Your changes to " (-> req :doc :user/first-name)
-                " " (-> req :doc :user/last-name) "'s profile have been saved.")))
+    :flash (str "Your changes to " (-> req :handler/doc :user/first-name)
+                " " (-> req :handler/doc :user/last-name) "'s profile have been saved.")))
 
 
-(defmethod document-handler [:post :user]
-;;   "User document handler needs to be run in a transaction to make sure there
-;; isn't a race condition between checking if an email address is already in 
-;; use and letting the user claim that email address."
-  [req]
-  (let [handler (get-method document-handler [:post ::default])]
-    (transaction (handler req))))
+(defmethod table-template :user [req]
+  (with-layout req "User List"
+    [:div
+     (table (:handler/document-list req)
+            :heading "Users"
+            :caption "List of Users"
+            :labels {:user/first-name "First Name"
+                     :user/last-name "Last Name"}
+            :keys [:user/first-name :user/last-name :user/email :address/zip])]))
 
-
-;(defmethod render :user [req]
-;  (with-layout req "User List"
-;    [:div
-;     (table (:document-list req)
-;            :heading "Users"
-;            :caption "List of Users"
-;            :labels {:user/first-name "First Name"
-;                     :user/last-name "Last Name"}
-;            :keys [:user/first-name :user/last-name :user/email :address/zip])]))

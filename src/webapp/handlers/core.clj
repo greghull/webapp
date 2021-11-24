@@ -8,20 +8,25 @@
             [webapp.settings :refer [settings]]
             [webapp.views.layout :refer [with-layout not-found]]
             [webapp.handlers.guards :refer [wrap-user wrap-guardian]]
-            [webapp.handlers.docs :refer [document-handler]]
-            [webapp.handlers.views :refer [view-handler]]
 
+            [webapp.handlers.document :refer [document-handler]]
+            [webapp.handlers.view :refer [view-handler]]
+
+            [webapp.handlers.all]
             [webapp.handlers.user]
             [webapp.handlers.user-login]
             [webapp.handlers.user-signup]
             [webapp.handlers.user-password]))
 
+(defn assoc-view [req]
+  (assoc req :handler/view (keyword (get-in req [:route-params :view]))))
+
 (defn doc-routes []
   (routes
-    (ANY "/:type" req
-         (view-handler req))
-    (ANY "/:type/:id" req
-         (document-handler req))))
+    (ANY "/:view" req
+         (-> req assoc-view view-handler))
+    (ANY "/:view/:id" req
+         (-> req assoc-view document-handler))))
 
 (defn define-routes []
   (routes
