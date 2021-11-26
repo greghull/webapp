@@ -72,4 +72,3 @@
             :labels {:user/first-name "First Name"
                      :user/last-name "Last Name"}
             :keys [:user/first-name :user/last-name :user/email :address/zip])]))
-
