@@ -10,7 +10,7 @@
 (defn error? [req]
   (or (-> req :handler/form :errors not-empty) (req :error)))
 
-; TODO rename this to inital and rename form/initial to form/initial-data
+; TODO rename this to initial and rename form/initial to form/initial-data
 ; then from will have :raw-data :initial-data and :cleaned-data keys
 ; or better yet :data/clean :data/initial :data/raw
 (defn get-initial [req]
@@ -25,28 +25,29 @@
 (defn success [req]
   (response/redirect (webapp.settings/url-for (:handler/view req))))
 
-(defmulti render :request-method)
+; TODO implement a default template that iterates over the whole schema
 
+(defmulti render :request-method)
 (defmethod render :get [req]
-  (template req))
+  ((-> req :handler/form :template) req))
 
 (defmethod render :post [req]
   (if (error? req)
-    (template req)
-    (success req)))
+    ((-> req :handler/form :template) req)
+    ((-> req :handler/form :success) req)))
 
 (defmulti request-handler :request-method)
 
 (defmethod request-handler :get [req]
   (some-> req
-          get-initial
+          ((-> req :handler/form :get-initial))
           render))
 
 (defmethod request-handler :post [req]
   (some-> req
-          get-initial
-          validate
-          task
+          ((-> req :handler/form :get-initial))
+          ((-> req :handler/form :validate))
+          ((-> req :handler/form :save))
           render))
 
 (def form-defaults
@@ -57,7 +58,7 @@
    :validate validate
    :success success})
 
-(defn form-handler [req form]
+(defn handler [req form]
   (-> req
       (assoc :handler/form (merge form-defaults form))
       request-handler))

@@ -7,10 +7,10 @@
 
             [webapp.handlers.guards :refer [require-login]]
             [webapp.handlers.view :refer [view-handler]]
-            [webapp.handlers.form :refer [form-handler form-schema success template task]]))
+            [webapp.handlers.form2 :as form]))
 
 
-(defmethod form-schema :user-password [_]
+(def schema
   {:password
    {:label "Old Password"
     :validation [st/required]}
@@ -21,7 +21,7 @@
    {:label "Confirm New Password"
     :validation [st/required [st/identical-to :new-password]]}})
 
-(defmethod template :user-password [req]
+(defn template [req]
   (with-layout req "Change Your Password"
     [:div.login-form
      [:h2 "Change Password for " (-> req :user :user/first-name) " " (-> req :user :user/last-name)]
@@ -31,18 +31,21 @@
                 (input req :confirm-password)
                 (submit-button "Change Password"))]))
 
-(defmethod task :user-password [req]
+(defn save [req]
   (if (-> req :handler/form :errors)
     req
     (if (u/update-password! (:user req)
                             (-> req :handler/form :cleaned-data :password)
                             (-> req :handler/form :cleaned-data :new-password))
       req
-      (assoc-in req [:handler/form :errors :old-password] "Your old password is incorrect."))))
+      (assoc-in req [:handler/form :errors :password] "Your old password is incorrect."))))
 
-(defmethod success :user-password [_]
+(defn success [_]
     (assoc (response/redirect "/")
            :flash "Your password has been updated."))
 
 (defmethod view-handler :user-password [req]
-  (-> req require-login form-handler))
+  (-> req require-login (form/handler {:schema schema
+                                       :template template
+                                       :save save
+                                       :success success})))

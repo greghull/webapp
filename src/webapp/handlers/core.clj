@@ -12,6 +12,7 @@
             [webapp.handlers.document :refer [document-handler]]
             [webapp.handlers.view :refer [view-handler]]
 
+            [webapp.handlers.login]
             [webapp.handlers.all]
             [webapp.handlers.user]
             [webapp.handlers.user-login]
