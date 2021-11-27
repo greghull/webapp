@@ -2,7 +2,7 @@
   (:require [webapp.handlers.table :refer [table-handler]]))
 
 (defmulti view-handler :handler/view)
-(defmulti document-handler :handler/view)
+(defmulti id-handler :handler/view)
 
 (defmethod view-handler :default [req]
   (table-handler req))

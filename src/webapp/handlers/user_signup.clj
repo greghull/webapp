@@ -1,16 +1,15 @@
 (ns webapp.handlers.user-signup
   (:require [ring.util.response :as response]
-            [webapp.views.forms :refer [input submit-button form-html]]
-            [webapp.views.layout :refer [with-layout]]
+            [webapp.helpers.forms :refer [input submit-button form-html]]
+            [webapp.helpers.layout :refer [with-layout]]
             [struct.core :as st]
             [webapp.db.core :as db]
             [buddy.hashers :as hashers]
             [webapp.db.validators :refer [does-not-exist]]
             [webapp.handlers.view :refer [view-handler]]
-            [webapp.handlers.form :refer [error? form-schema render template success]]
-            [webapp.handlers.document :refer [document document-handler save]]))
+            [webapp.handlers.form :as form]))
 
-(defmethod form-schema :user-signup [_]
+(def schema
   {:user/first-name
    {:label "Your First Name"
     :validation [st/required st/string]}
@@ -27,7 +26,7 @@
    {:label "Confirm Password"
     :validation [st/required [st/identical-to :user/password]]}})
 
-(defmethod template :user-signup [req]
+(defn template [req]
   (with-layout req "User Registration"
     [:div.registration-form
      [:h2 "Register for a new account"]
@@ -39,19 +38,19 @@
                 (input req :user/confirm-password)
                 (submit-button "Create Account"))]))
 
-(defmethod save :user-signup [req]
-  (if (error? req)
+(defn save [req]
+  (if (form/error? req)
     req
     (let [doc (-> req
-                  :handler/doc
-                  (merge (-> req :handler/form :cleaned-data))
+                  (form/cleaned-data)
+                  (assoc :meta/type :user)
                   (dissoc :user/confirm-password)
-                  (assoc :user/password (hashers/derive (-> req :handler/form :cleaned-data :user/password)))
+                  (assoc :user/password (hashers/derive (-> req form/cleaned-data :user/password)))
                   (assoc :user/email-confirmed? false))]
       (try (assoc req :handler/doc (db/put! doc))
            (catch Exception e (assoc req :error (ex-message e)))))))
 
-(defmethod success :user-signup [req]
+(defn success [req]
   (let [doc (:handler/doc req)]
     (merge (response/redirect "/")
      {:flash (str "Welcome " (:user/first-name doc)
@@ -59,5 +58,8 @@
        :session {:id (:meta/id doc)}})))
 
 (defmethod view-handler :user-signup [req]
-  (document-handler req))
+  (form/handler req {:schema   schema
+                     :template template
+                     :save save
+                     :success  success}))
 

@@ -6,12 +6,11 @@
             [ring.logger :as logger]
             [mount.core :as mount]
             [webapp.settings :refer [settings]]
-            [webapp.views.layout :refer [with-layout not-found]]
+            [webapp.helpers.layout :refer [with-layout not-found]]
             [webapp.handlers.guards :refer [wrap-user wrap-guardian]]
 
-            [webapp.handlers.view :refer [view-handler document-handler]]
+            [webapp.handlers.view :refer [view-handler id-handler]]
 
-            [webapp.handlers.login]
             [webapp.handlers.all]
             [webapp.handlers.user]
             [webapp.handlers.user-login]
@@ -26,7 +25,7 @@
     (ANY "/:view" req
          (-> req assoc-view view-handler))
     (ANY "/:view/:id" req
-         (-> req assoc-view document-handler))))
+      (-> req assoc-view id-handler))))
 
 (defn define-routes []
   (routes

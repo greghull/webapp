@@ -77,7 +77,7 @@
   (let [form (:handler/form req)
         widget (or (-> form :schema k :widget) (default-widget form k))
         label (or (-> form :schema k :label) (str/capitalize (name k)))
-        value (or (-> form :raw-data k) (-> form :initial k))
+        value (or (-> form :data/raw k) (-> form :data/initial k))
         style (-> form :schema k :style)
         error (-> form :errors k)
         required? (some #{st/required} (flatten (-> form :schema k :validation)))]

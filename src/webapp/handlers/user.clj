@@ -1,15 +1,15 @@
 (ns webapp.handlers.user
   (:require [ring.util.response :as response]
-            [webapp.helpers.forms2 :refer [input submit-button form-html]]
-            [webapp.views.layout :refer [with-layout table]]
+            [webapp.helpers.forms :refer [input submit-button form-html]]
+            [webapp.helpers.layout :refer [with-layout table]]
             [struct.core :as st]
             [webapp.settings :refer [url-for]]
 
             [webapp.handlers.table :refer [table-template table-handler]]
-            [webapp.handlers.document2 :as document]
-            [webapp.handlers.view :refer [view-handler document-handler]]
+            [webapp.handlers.document :as document]
+            [webapp.handlers.view :refer [view-handler id-handler]]
             [webapp.db.validators :refer [unique-to]]
-            [webapp.handlers.form2 :as form]))
+            [webapp.handlers.form :as form]))
 
 (def schema
   {:meta/id
@@ -63,7 +63,7 @@
     :flash (str "Your changes to " (-> req form/final-data :user/first-name)
                 " " (-> req form/final-data :user/last-name) "'s profile have been saved.")))
 
-(defmethod document-handler :user [req]
+(defmethod id-handler :user [req]
   (document/handler req {:schema schema
                          :template template
                          :success success}))

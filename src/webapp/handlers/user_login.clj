@@ -2,13 +2,12 @@
   (:require [ring.util.response :as response]
             [struct.core :as st]
             [webapp.db.user :as u]
-            [webapp.views.forms :refer [input submit-button form-html]]
-            [webapp.views.layout :refer [with-layout]]
+            [webapp.helpers.forms :refer [input submit-button form-html]]
+            [webapp.helpers.layout :refer [with-layout]]
             [webapp.handlers.view :refer [view-handler]]
-            [webapp.handlers.form :refer [form-handler form-schema form success
-                                          error? task template]]))
+            [webapp.handlers.form :as form]))
 
-(defmethod form-schema :user-login [_]
+(def schema
   {:email
    {:label "Your Email Address"
     :validation [st/required st/email]}
@@ -16,7 +15,7 @@
    {:label "Your Password"
     :validation [st/required]}})
 
-(defmethod template :user-login [req]
+(defn template [req]
   (with-layout req "User Login"
     [:div.login-form
      [:h2 "Login with existing account"]
@@ -27,20 +26,23 @@
                 (input req :password)
                 (submit-button "Login"))]))
 
-(defmethod task :user-login [req]
-  (if-let [user (u/auth-user (-> req :handler/form :cleaned-data :email)
-                             (-> req :handler/form :cleaned-data :password))]
+(defn save [req]
+  (if-let [user (u/auth-user (-> req form/cleaned-data :email)
+                             (-> req form/cleaned-data :password))]
     (assoc req :user user)
     (assoc-in req [:handler/form :errors :auth] "Invalid email or password")))
 
-(defmethod success :user-login [req]
+(defn success [req]
   (merge (response/redirect (or (-> req :session :referer) "/"))
          {:flash (str "Welcome back " (-> req :user :user/first-name)
                       " " (-> req :user :user/last-name) ".")
           :session (assoc (:session req) :id (-> req :user :meta/id))}))
 
 (defmethod view-handler :user-login [req]
-  (form-handler req))
+  (form/handler req {:schema schema
+                     :template template
+                     :save save
+                     :success success}))
 
 (defmethod view-handler :user-logout [_]
   (merge (response/redirect "/") {:session nil :flash "You are now logged out."}))

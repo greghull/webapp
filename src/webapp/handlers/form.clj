@@ -1,76 +1,89 @@
 (ns webapp.handlers.form
-  (:require [ring.util.response :as response]
+  (:require [clojure.pprint :refer [pprint]]
+            [ring.util.response :as response]
             [compojure.core :refer [ANY routes]]
             [clojure.pprint :refer [pprint *print-right-margin*]]
-            [webapp.views.helpers :refer [title-for]]
-            [webapp.views.forms :refer [text-area input submit-button validate-form form-params form-html]]
-            [webapp.views.layout :refer [with-layout table]]
+            [webapp.helpers.titles :refer [title-for]]
+            [webapp.helpers.forms :refer [text-area input submit-button validate-form form-params form-html]]
+            [webapp.helpers.layout :refer [with-layout table]]
             [webapp.handlers.guards :refer [require-login require-admin]]))
 
 (defn error? [req]
   (or (-> req :handler/form :errors not-empty) (req :error)))
 
-(defmulti template :handler/view)
 
-(defmulti form-schema :handler/view)
+(defn initial-data [req]
+  (-> req :handler/form :data/initial))
 
-(defmulti form :handler/view)
-(defmethod form :default
-  ([req]
-    (assoc req :handler/form {:schema (form-schema req) :initial (:handler/doc req)})))
+(defn raw-data [req]
+  (-> req :handler/form :data/raw))
 
-(defmulti validate :handler/view)
-(defmethod validate :default [req]
+(defn cleaned-data [req]
+  (-> req :handler/form :data/cleaned))
+
+(defn final-data [req]
+  (-> req :handler/form :data/final))
+
+
+(defn initial [req]
+  (assoc-in req [:handler/form :data/initial] nil))
+
+(defn template [req]
+  (with-layout req "User Profile"
+               [:div.profile-form
+                (form-html req
+                           [:h2 (:handler/view req)]
+                           (for [k (keys (-> req :handler/form :schema))]
+                                  (input req k))
+                           (submit-button "Save Changes"))]))
+
+(defn validate [req]
   (let [raw-data (form-params req)
-        [errors cleaned-data] (validate-form (-> req :handler/form :schema) (merge (:handler/doc req) raw-data))
-        form (merge (:handler/form req) {:raw-data raw-data :errors errors :cleaned-data cleaned-data})]
+        initial-data (initial-data req)
+        [errors cleaned-data] (validate-form (-> req :handler/form :schema) (merge initial-data raw-data))
+        form (merge (:handler/form req) {:data/raw raw-data :errors errors
+                                         :data/cleaned cleaned-data
+                                         :data/final (merge initial-data cleaned-data)})]
     (assoc req :handler/form form)))
 
-(defmulti task :handler/view)
-(defmethod task :default [req]
-    req)
-
-(defmulti success :handler/view)
-(defmethod success :default [req]
+(defn success [req]
   (response/redirect (webapp.settings/url-for (:handler/view req))))
 
-(defmulti render (fn [req] [(:request-method req) (:handler/view req)]))
+; TODO implement a default template that iterates over the whole schema
 
-(defmethod render :default [req]
-  (let [recover (get-method render [(:request-method req) ::default])]
-    ;; Prevent infinite loop:
-    (if (and recover (not (= (get-method render :default) recover)))
-      (recover req)
-      :default)))
+(defmulti render :request-method)
+(defmethod render :get [req]
+  (pprint (:handler/form req))
+  ((-> req :handler/form :template) req))
 
-(defmethod render [:get ::default] [req]
-  (template req))
-
-(defmethod render [:post ::default] [req]
+(defmethod render :post [req]
   (if (error? req)
-    (template req)
-    (success req)))
+    ((-> req :handler/form :template) req)
+    ((-> req :handler/form :success) req)))
 
-(defmulti form-handler
-          (fn [req] [(:request-method req) (:handler/view req)]))
+(defmulti request-handler :request-method)
 
-(defmethod form-handler :default [req]
-  (let [recover (get-method form-handler [(:request-method req) ::default])]
-    ;; Prevent infinite loop:
-    (if (and recover (not (= (get-method form-handler :default) recover)))
-      (recover req)
-      :default)))
-
-(defmethod form-handler [:get ::default] [req]
+(defmethod request-handler :get [req]
   (some-> req
-          form
+          ((-> req :handler/form :initial))
           render))
 
-(defmethod form-handler [:post ::default] [req]
+(defmethod request-handler :post [req]
   (some-> req
-          form
-          validate
-          task
+          ((-> req :handler/form :initial))
+          ((-> req :handler/form :validate))
+          ((-> req :handler/form :save))
           render))
 
+(def form-defaults
+  {:schema {}
+   :template template
+   :save (fn [req] req)
+   :initial (fn [req] req)
+   :validate validate
+   :success success})
 
+(defn handler [req form]
+  (-> req
+      (assoc :handler/form (merge form-defaults form))
+      request-handler))

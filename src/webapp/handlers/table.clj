@@ -1,8 +1,8 @@
 (ns webapp.handlers.table
   (:require [webapp.handlers.guards :refer [require-login require-admin]]
-            [webapp.views.helpers :refer [title-for]]
-            [webapp.views.forms :refer [text-area input submit-button validate-form form-params form-html]]
-            [webapp.views.layout :refer [with-layout table]]
+            [webapp.helpers.titles :refer [title-for]]
+            [webapp.helpers.forms :refer [text-area input submit-button validate-form form-params form-html]]
+            [webapp.helpers.layout :refer [with-layout table]]
             [webapp.db.core :as db]))
 
 

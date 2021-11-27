@@ -3,14 +3,14 @@
             [clojure.edn :as edn]
             [webapp.db.core :as db]
             [struct.core :as st]
-            [webapp.views.helpers :refer [title-for]]
-            [webapp.helpers.forms2 :refer [text-area input submit-button validate-form form-params form-html]]
-            [webapp.views.layout :refer [with-layout table]]
+            [webapp.helpers.titles :refer [title-for]]
+            [webapp.helpers.forms :refer [text-area input submit-button validate-form form-params form-html]]
+            [webapp.helpers.layout :refer [with-layout table]]
             [webapp.handlers.guards :refer [require-login require-admin]]
 
-            [webapp.handlers.view :refer [document-handler]]
-            [webapp.handlers.document2 :as document]
-            [webapp.handlers.form2 :as form]
+            [webapp.handlers.view :refer [id-handler]]
+            [webapp.handlers.document :as document]
+            [webapp.handlers.form :as form]
             [webapp.handlers.table :refer [table-template document-list]]))
 
 ;;; Methods for editing the EDN source of any document in a form
@@ -54,7 +54,7 @@
            (catch Exception e (assoc req :error (ex-message e))))
       (assoc req :error "Document cannot be blank!"))))
 
-(defmethod document-handler :all [req]
+(defmethod id-handler :all [req]
   (document/handler req {:schema schema
                          :save save
                          :initial initial

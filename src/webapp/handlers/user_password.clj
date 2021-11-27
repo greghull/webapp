@@ -1,13 +1,13 @@
 (ns webapp.handlers.user-password
   (:require [ring.util.response :as response]
-            [webapp.views.forms :refer [input submit-button form-html]]
-            [webapp.views.layout :refer [with-layout]]
+            [webapp.helpers.forms :refer [input submit-button form-html]]
+            [webapp.helpers.layout :refer [with-layout]]
             [struct.core :as st]
             [webapp.db.user :as u]
 
             [webapp.handlers.guards :refer [require-login]]
             [webapp.handlers.view :refer [view-handler]]
-            [webapp.handlers.form2 :as form]))
+            [webapp.handlers.form :as form]))
 
 
 (def schema
