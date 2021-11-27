@@ -27,8 +27,8 @@
                 (submit-button "Login"))]))
 
 (defn save [req]
-  (if-let [user (u/auth-user (-> req :handler/form :cleaned-data :email)
-                             (-> req :handler/form :cleaned-data :password))]
+  (if-let [user (u/auth-user (-> req :handler/form :data/cleaned :email)
+                             (-> req :handler/form :data/cleaned :password))]
     (assoc req :user user)
     (assoc-in req [:handler/form :errors :auth] "Invalid email or password")))
 

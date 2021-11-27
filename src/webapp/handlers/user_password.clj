@@ -35,8 +35,8 @@
   (if (-> req :handler/form :errors)
     req
     (if (u/update-password! (:user req)
-                            (-> req :handler/form :cleaned-data :password)
-                            (-> req :handler/form :cleaned-data :new-password))
+                            (-> req :handler/form :data/cleaned :password)
+                            (-> req :handler/form :data/cleaned :new-password))
       req
       (assoc-in req [:handler/form :errors :password] "Your old password is incorrect."))))
 

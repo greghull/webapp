@@ -1,16 +1,17 @@
 (ns webapp.handlers.user
   (:require [ring.util.response :as response]
-            [webapp.views.forms :refer [input submit-button form-html]]
+            [webapp.helpers.forms2 :refer [input submit-button form-html]]
             [webapp.views.layout :refer [with-layout table]]
             [struct.core :as st]
             [webapp.settings :refer [url-for]]
 
-            [webapp.handlers.table :refer [table-template]]
-            [webapp.handlers.form :refer [template form-schema success error?]]
-            [webapp.handlers.document :refer [document-handler]]
-            [webapp.db.validators :refer [unique-to]]))
+            [webapp.handlers.table :refer [table-template table-handler]]
+            [webapp.handlers.document2 :as document]
+            [webapp.handlers.view :refer [view-handler document-handler]]
+            [webapp.db.validators :refer [unique-to]]
+            [webapp.handlers.form2 :as form]))
 
-(defmethod form-schema :user [_]
+(def schema
   {:meta/id
    {:validation [st/required]}
    :user/first-name
@@ -38,7 +39,7 @@
    {:label "Zip Code"
     :validation [st/required [st/min-count 5]]}})
 
-(defmethod template :user [req]
+(defn template [req]
   (with-layout req "User Profile"
     [:div.profile-form
      (form-html req
@@ -57,11 +58,15 @@
 
                 (submit-button "Save Changes"))]))
 
-(defmethod success :user [req]
+(defn success [req]
   (assoc (response/redirect (url-for :user))
-    :flash (str "Your changes to " (-> req :handler/doc :user/first-name)
-                " " (-> req :handler/doc :user/last-name) "'s profile have been saved.")))
+    :flash (str "Your changes to " (-> req form/final-data :user/first-name)
+                " " (-> req form/final-data :user/last-name) "'s profile have been saved.")))
 
+(defmethod document-handler :user [req]
+  (document/handler req {:schema schema
+                         :template template
+                         :success success}))
 
 (defmethod table-template :user [req]
   (with-layout req "User List"
@@ -72,3 +77,6 @@
             :labels {:user/first-name "First Name"
                      :user/last-name "Last Name"}
             :keys [:user/first-name :user/last-name :user/email :address/zip])]))
+
+(defmethod view-handler :user [req]
+  (table-handler req))

@@ -1,25 +1,42 @@
 (ns webapp.handlers.form2
-  (:require [ring.util.response :as response]
+  (:require [clojure.pprint :refer [pprint]]
+            [ring.util.response :as response]
             [compojure.core :refer [ANY routes]]
             [clojure.pprint :refer [pprint *print-right-margin*]]
             [webapp.views.helpers :refer [title-for]]
-            [webapp.views.forms :refer [text-area input submit-button validate-form form-params form-html]]
+            [webapp.helpers.forms2 :refer [text-area input submit-button validate-form form-params form-html]]
             [webapp.views.layout :refer [with-layout table]]
             [webapp.handlers.guards :refer [require-login require-admin]]))
 
 (defn error? [req]
   (or (-> req :handler/form :errors not-empty) (req :error)))
 
+
+(defn initial-data [req]
+  (-> req :handler/form :data/initial))
+
+(defn raw-data [req]
+  (-> req :handler/form :data/raw))
+
+(defn cleaned-data [req]
+  (-> req :handler/form :data/cleaned))
+
+(defn final-data [req]
+  (-> req :handler/form :data/final))
+
 ; TODO rename this to initial and rename form/initial to form/initial-data
 ; then from will have :raw-data :initial-data and :cleaned-data keys
 ; or better yet :data/clean :data/initial :data/raw
-(defn get-initial [req]
-  (assoc-in req [:handler/form :initial] nil))
+(defn initial [req]
+  (assoc-in req [:handler/form :data/initial] nil))
 
 (defn validate [req]
   (let [raw-data (form-params req)
-        [errors cleaned-data] (validate-form (-> req :handler/form :schema) (merge (:handler/initial req) raw-data))
-        form (merge (:handler/form req) {:raw-data raw-data :errors errors :cleaned-data cleaned-data})]
+        initial-data (initial-data req)
+        [errors cleaned-data] (validate-form (-> req :handler/form :schema) (merge initial-data raw-data))
+        form (merge (:handler/form req) {:data/raw raw-data :errors errors
+                                         :data/cleaned cleaned-data
+                                         :data/final (merge initial-data cleaned-data)})]
     (assoc req :handler/form form)))
 
 (defn success [req]
@@ -29,6 +46,7 @@
 
 (defmulti render :request-method)
 (defmethod render :get [req]
+  (pprint (:handler/form req))
   ((-> req :handler/form :template) req))
 
 (defmethod render :post [req]
@@ -40,12 +58,12 @@
 
 (defmethod request-handler :get [req]
   (some-> req
-          ((-> req :handler/form :get-initial))
+          ((-> req :handler/form :initial))
           render))
 
 (defmethod request-handler :post [req]
   (some-> req
-          ((-> req :handler/form :get-initial))
+          ((-> req :handler/form :initial))
           ((-> req :handler/form :validate))
           ((-> req :handler/form :save))
           render))
@@ -54,7 +72,7 @@
   {:schema {}
    :template nil
    :save (fn [req] req)
-   :get-initial (fn [req] req)
+   :initial (fn [req] req)
    :validate validate
    :success success})
 

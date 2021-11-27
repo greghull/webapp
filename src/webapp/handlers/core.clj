@@ -9,8 +9,7 @@
             [webapp.views.layout :refer [with-layout not-found]]
             [webapp.handlers.guards :refer [wrap-user wrap-guardian]]
 
-            [webapp.handlers.document :refer [document-handler]]
-            [webapp.handlers.view :refer [view-handler]]
+            [webapp.handlers.view :refer [view-handler document-handler]]
 
             [webapp.handlers.login]
             [webapp.handlers.all]

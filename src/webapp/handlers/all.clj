@@ -4,24 +4,25 @@
             [webapp.db.core :as db]
             [struct.core :as st]
             [webapp.views.helpers :refer [title-for]]
-            [webapp.views.forms :refer [text-area input submit-button validate-form form-params form-html]]
+            [webapp.helpers.forms2 :refer [text-area input submit-button validate-form form-params form-html]]
             [webapp.views.layout :refer [with-layout table]]
             [webapp.handlers.guards :refer [require-login require-admin]]
 
-            [webapp.handlers.table :refer [table-template document-list]]
-            [webapp.handlers.form :refer [form-schema template error?]]
-            [webapp.handlers.document :refer [default-document document save]]))
+            [webapp.handlers.view :refer [document-handler]]
+            [webapp.handlers.document2 :as document]
+            [webapp.handlers.form2 :as form]
+            [webapp.handlers.table :refer [table-template document-list]]))
 
 ;;; Methods for editing the EDN source of any document in a form
 
-(defmethod form-schema :all [_]
+(def schema
   {:doc/text
    {:label "Edit Document"
     :widget text-area
     :style "height: 500px;"
     :validation [st/required]}})
 
-(defmethod template :all [req]
+(defn template [req]
   (with-layout req "Edit Document"
     [:div.login-form
      [:h2 "Edit Document"]
@@ -37,23 +38,27 @@
 (defn doc-as-str [d]
   (with-out-str (binding [*print-right-margin* 80] (pprint d))))
 
-(defmethod default-document :all [_]
-  {:meta/type "unknown"})
-
-(defmethod document :all [req]
-  (let [id (-> req :route-params :id)
-        doc (if (= id "new")
-              (default-document req)
+(defn initial [req]
+  (let [id (get-in req [:route-params :id])
+        doc (if (or (nil? id) (= id "new"))
+              {:meta/type "unknown"}
               (db/fetch id))]
-    (when doc (assoc req :handler/doc {:doc/text (doc-as-str (into (sorted-map) doc))}))))
+    (when doc (-> req
+                  (assoc-in [:handler/form :data/initial] {:doc/text (doc-as-str doc)})))))
 
-(defmethod save :all [req]
-    (if (error? req)
-      req
-      (if-let [doc (-> req :handler/form :cleaned-data :doc/text edn/read-string)]
-        (try (assoc req :handler/doc (db/put! doc))
-             (catch Exception e (assoc req :error (ex-message e))))
-        (assoc req :error "Document cannot be blank!"))))
+(defn save [req]
+  (if (form/error? req)
+    req
+    (if-let [doc (-> req form/cleaned-data :doc/text edn/read-string)]
+      (try (assoc req :handler/doc (db/put! doc))
+           (catch Exception e (assoc req :error (ex-message e))))
+      (assoc req :error "Document cannot be blank!"))))
+
+(defmethod document-handler :all [req]
+  (document/handler req {:schema schema
+                         :save save
+                         :initial initial
+                         :template template}))
 
 
 ;;; Table of All Documents methods
