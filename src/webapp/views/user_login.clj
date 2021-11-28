@@ -1,4 +1,4 @@
-(ns webapp.handlers.user-login
+(ns webapp.views.user-login
   (:require [ring.util.response :as response]
             [struct.core :as st]
             [webapp.db.user :as u]

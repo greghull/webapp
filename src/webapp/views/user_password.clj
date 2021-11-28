@@ -1,4 +1,4 @@
-(ns webapp.handlers.user-password
+(ns webapp.views.user-password
   (:require [ring.util.response :as response]
             [webapp.helpers.forms :refer [input submit-button form-html]]
             [webapp.helpers.layout :refer [with-layout]]

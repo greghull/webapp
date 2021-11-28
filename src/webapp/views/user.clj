@@ -1,6 +1,6 @@
-(ns webapp.handlers.user
+(ns webapp.views.user
   (:require [ring.util.response :as response]
-            [webapp.helpers.forms :refer [input submit-button form-html]]
+            [webapp.helpers.forms :refer [input drop-down submit-button form-html]]
             [webapp.helpers.layout :refer [with-layout table]]
             [struct.core :as st]
             [webapp.settings :refer [url-for]]
@@ -23,6 +23,12 @@
    :user/email
    {:label "Email"
     :validation [st/required st/email [unique-to :meta/id :user/email]]}
+   :user/phone
+   {:label "Phone Number"
+    :validation [st/required [st/min-count 10]]}
+   :user/employer
+   {:label "Employer"
+    :validation [st/required]}
    :address/street-1
    {:label "Street Address Line 1"
     :validation [st/required]}
@@ -34,6 +40,8 @@
     :validation [st/required]}
    :address/state
    {:label "State"
+    :widget drop-down
+    :options ["Ohio" "Kentucky" "Indiana"]
     :validation [st/required]}
    :address/zip
    {:label "Zip Code"
@@ -41,27 +49,30 @@
 
 (defn template [req]
   (with-layout req "User Profile"
-               [:div.profile-form
-                (form-html req
-                           [:h2 "User Profile"]
-                           (input req :user/first-name)
-                           (input req :user/last-name)
-                           (input req :user/email)
+    [:div.profile-form
+     (form-html req
+                [:h2 "User Profile"]
+                [:div.row
+                 [:div.col-lg-6 (input req :user/first-name)]
+                 [:div.col-lg-6 (input req :user/last-name)]
+                 [:div.col-lg-4 (input req :user/email)]
+                 [:div.col-lg-4 (input req :user/phone)]
+                 [:div.col-lg-4 (input req :user/employer)]]
 
-                           [:h2 "Address"]
-                           (input req :address/street-1)
-                           (input req :address/street-2)
-                           [:div.row
-                            [:div.col-lg-5 (input req :address/city)]
-                            [:div.col-lg-3 (input req :address/state)]
-                            [:div.col-lg-4 (input req :address/zip)]]
+                [:h2 "Address"]
+                (input req :address/street-1)
+                (input req :address/street-2)
+                [:div.row
+                 [:div.col-lg-5 (input req :address/city)]
+                 [:div.col-lg-3 (input req :address/state)]
+                 [:div.col-lg-4 (input req :address/zip)]]
 
-                           (submit-button "Save Changes"))]))
+                (submit-button "Save Changes"))]))
 
 (defn success [req]
   (assoc (response/redirect (url-for :user))
-    :flash (str "Your changes to " (-> req form/final-data :user/first-name)
-                " " (-> req form/final-data :user/last-name) "'s profile have been saved.")))
+         :flash (str "Your changes to " (-> req form/final-data :user/first-name)
+                     " " (-> req form/final-data :user/last-name) "'s profile have been saved.")))
 
 (defmethod id-handler :user [req]
   (document/handler req {:schema schema

@@ -1,4 +1,4 @@
-(ns webapp.handlers.user-signup
+(ns webapp.views.user-signup
   (:require [ring.util.response :as response]
             [webapp.helpers.forms :refer [input submit-button form-html]]
             [webapp.helpers.layout :refer [with-layout]]
