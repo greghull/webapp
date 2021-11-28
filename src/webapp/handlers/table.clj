@@ -1,14 +1,20 @@
 (ns webapp.handlers.table
-  (:require [webapp.handlers.guards :refer [require-login require-admin]]
-            [webapp.helpers.titles :refer [title-for]]
-            [webapp.helpers.forms :refer [text-area input submit-button validate-form form-params form-html]]
+  (:require [webapp.helpers.titles :refer [title-for]]
             [webapp.helpers.layout :refer [with-layout table]]
             [webapp.db.core :as db]))
 
 
 (defmulti table-template :handler/view)
-(defmethod table-template :default [_]
-  nil)
+(defmethod table-template :default [req]
+  (with-layout req "Documents"
+    [:div
+     (table (:handler/document-list req)
+            :heading "Documents"
+            :caption "List of Documents"
+            :labels {:meta/id "ID"
+                     :meta/type "Type"
+                     title-for "Description"}
+            :keys [:meta/id :meta/type title-for])]))
 
 (defmulti document-list :handler/view)
 (defmethod document-list :default [req]
