@@ -51,6 +51,15 @@
      [:div.invalid-feedback error]
      [:label {:for name} (:placeholder attr-map?)]]))
 
+(defn drop-down
+    [& [attr-map? ks value error options]]
+  (let [name (keys-to-name ks)]
+    [:div.form-floating.mb-3
+     (hiccup/drop-down (assoc attr-map? :class (str (input-class error) " " (:class attr-map?)))
+                        name options value)
+     [:div.invalid-feedback error]
+     [:label {:for name} (:placeholder attr-map?)]]))
+
 (defn default-widget
   "Tries to guess what widget to use for the field `k` in the given `form`.
    Defaults to a plain text-field."
@@ -79,11 +88,15 @@
         label (or (-> form :schema k :label) (str/capitalize (name k)))
         value (or (-> form :data/raw k) (-> form :data/initial k))
         style (-> form :schema k :style)
+        options (-> form :schema k :options)
         error (-> form :errors k)
-        required? (some #{st/required} (flatten (-> form :schema k :validation)))]
-    (if required?
-      (widget {:placeholder label :required true :style style} k value error)
-      (widget {:placeholder label :style style} k value error))))
+        required? (some #{st/required} (flatten (-> form :schema k :validation)))
+        attr-map (if required?
+                   {:placeholder label :required true :style style}
+                   {:placeholder label :style style})]
+    (if options
+      (widget attr-map k value error options)
+      (widget attr-map k value error))))
 
 (defmacro form-html
   [req & body]
