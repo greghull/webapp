@@ -7,18 +7,13 @@
             [mount.core :as mount]
             [webapp.settings :refer [settings]]
             [webapp.helpers.layout :refer [with-layout not-found]]
-            [webapp.handlers.guards :refer [wrap-user wrap-guardian]]
-
-            [webapp.handlers.view :refer [view-handler id-handler]]
-
-            [webapp.handlers.all]
-            [webapp.handlers.user]
-            [webapp.handlers.user-login]
-            [webapp.handlers.user-signup]
-            [webapp.handlers.user-password]))
+            [webapp.handlers.guards :refer [wrap-user wrap-guardian]]))
 
 (defn assoc-view [req]
   (assoc req :handler/view (keyword (get-in req [:route-params :view]))))
+
+(defmulti view-handler :handler/view)
+(defmulti id-handler :handler/view)
 
 (defn doc-routes []
   (routes

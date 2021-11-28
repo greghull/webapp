@@ -4,12 +4,10 @@
 
 (defn initial [req]
   (let [id (get-in req [:route-params :id])
-        type (:handler/view req)
-        doc (if (or (nil? id) (= id "new"))
-              {:meta/type (:handler/view req)}
-              (db/fetch id type))]
-    (when doc (-> req
-                  (assoc-in [:handler/form :data/initial] doc)))))
+        type (:handler/view req)]
+    (if (or (nil? id) (= id "new"))
+      {:meta/type (:handler/view req)}
+      (db/fetch id type))))
 
 (defn save [req]
   (if (form/error? req)

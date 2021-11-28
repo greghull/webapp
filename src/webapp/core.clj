@@ -4,7 +4,8 @@
             [ring.adapter.jetty :as ring]
             [webapp.handlers.core :refer [app]]
             [webapp.settings :refer [settings]]
-            [mount.core :as mount]))
+            [mount.core :as mount]
+            [webapp.views.all]))
 
 (declare server)
 (mount/defstate server

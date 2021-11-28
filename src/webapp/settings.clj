@@ -1,6 +1,7 @@
 (ns webapp.settings
-  (:require [webapp.db.core :as db]
-            [mount.core :as mount]))
+  (:require
+   [mount.core :as mount]
+   [webapp.db.core :as db]))
 
 (def default-settings {:port 3000
                        :doc-root "/db"})
@@ -9,7 +10,6 @@
 (mount/defstate settings
   :start (merge default-settings (db/fetch "settings"))
   :stop default-settings)
-
 
 (defn url-for
   "Returns a URL for the given object.  If `x` is a keyword, returns a url for the associated

@@ -1,16 +1,12 @@
 (ns webapp.handlers.form
-  (:require [clojure.pprint :refer [pprint]]
-            [ring.util.response :as response]
-            [compojure.core :refer [ANY routes]]
-            [clojure.pprint :refer [pprint *print-right-margin*]]
+  (:require [ring.util.response :as response]
             [webapp.helpers.titles :refer [title-for]]
-            [webapp.helpers.forms :refer [text-area input submit-button validate-form form-params form-html]]
-            [webapp.helpers.layout :refer [with-layout table]]
-            [webapp.handlers.guards :refer [require-login require-admin]]))
+            [webapp.helpers.forms :refer [input submit-button validate-form form-params form-html]]
+            [webapp.helpers.layout :refer [with-layout]]
+            [webapp.settings :as settings]))
 
 (defn error? [req]
   (or (-> req :handler/form :errors not-empty) (req :error)))
-
 
 (defn initial-data [req]
   (-> req :handler/form :data/initial))
@@ -24,15 +20,16 @@
 (defn final-data [req]
   (-> req :handler/form :data/final))
 
-
 (defn initial [req]
-  (assoc-in req [:handler/form :data/initial] nil))
+  (if-let [initial ((-> req :handler/form :initial) req)]
+    (assoc-in req [:handler/form :data/initial] initial)
+    nil))
 
 (defn template [req]
-  (with-layout req "User Profile"
+  (with-layout req (title-for (initial-data req))
                [:div.profile-form
                 (form-html req
-                           [:h2 (:handler/view req)]
+                           [:h2 (title-for (initial-data req))]
                            (for [k (keys (-> req :handler/form :schema))]
                                   (input req k))
                            (submit-button "Save Changes"))]))
@@ -47,13 +44,10 @@
     (assoc req :handler/form form)))
 
 (defn success [req]
-  (response/redirect (webapp.settings/url-for (:handler/view req))))
-
-; TODO implement a default template that iterates over the whole schema
+  (response/redirect (settings/url-for (:handler/view req))))
 
 (defmulti render :request-method)
 (defmethod render :get [req]
-  (pprint (:handler/form req))
   ((-> req :handler/form :template) req))
 
 (defmethod render :post [req]
@@ -65,12 +59,12 @@
 
 (defmethod request-handler :get [req]
   (some-> req
-          ((-> req :handler/form :initial))
+          initial
           render))
 
 (defmethod request-handler :post [req]
   (some-> req
-          ((-> req :handler/form :initial))
+          initial
           ((-> req :handler/form :validate))
           ((-> req :handler/form :save))
           render))
@@ -79,7 +73,7 @@
   {:schema {}
    :template template
    :save (fn [req] req)
-   :initial (fn [req] req)
+   :initial (fn [_] {})
    :validate validate
    :success success})
 
