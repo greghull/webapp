@@ -7,7 +7,7 @@
 
             [webapp.handlers.table :refer [table-template table-handler]]
             [webapp.handlers.document :as document]
-            [webapp.handlers.view :refer [view-handler id-handler]]
+            [webapp.handlers.core :refer [view-handler id-handler]]
             [webapp.db.validators :refer [unique-to]]
             [webapp.handlers.form :as form]))
 
@@ -41,22 +41,22 @@
 
 (defn template [req]
   (with-layout req "User Profile"
-    [:div.profile-form
-     (form-html req
-                [:h2 "User Profile"]
-                (input req :user/first-name)
-                (input req :user/last-name)
-                (input req :user/email)
+               [:div.profile-form
+                (form-html req
+                           [:h2 "User Profile"]
+                           (input req :user/first-name)
+                           (input req :user/last-name)
+                           (input req :user/email)
 
-                [:h2 "Address"]
-                (input req :address/street-1)
-                (input req :address/street-2)
-                [:div.row
-                 [:div.col-lg-5 (input req :address/city)]
-                 [:div.col-lg-3 (input req :address/state)]
-                 [:div.col-lg-4 (input req :address/zip)]]
+                           [:h2 "Address"]
+                           (input req :address/street-1)
+                           (input req :address/street-2)
+                           [:div.row
+                            [:div.col-lg-5 (input req :address/city)]
+                            [:div.col-lg-3 (input req :address/state)]
+                            [:div.col-lg-4 (input req :address/zip)]]
 
-                (submit-button "Save Changes"))]))
+                           (submit-button "Save Changes"))]))
 
 (defn success [req]
   (assoc (response/redirect (url-for :user))

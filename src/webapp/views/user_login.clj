@@ -4,7 +4,7 @@
             [webapp.db.user :as u]
             [webapp.helpers.forms :refer [input submit-button form-html]]
             [webapp.helpers.layout :refer [with-layout]]
-            [webapp.handlers.view :refer [view-handler]]
+            [webapp.handlers.core :refer [view-handler]]
             [webapp.handlers.form :as form]))
 
 (def schema

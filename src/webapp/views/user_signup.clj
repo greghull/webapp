@@ -6,7 +6,7 @@
             [webapp.db.core :as db]
             [buddy.hashers :as hashers]
             [webapp.db.validators :refer [does-not-exist]]
-            [webapp.handlers.view :refer [view-handler]]
+            [webapp.handlers.core :refer [view-handler]]
             [webapp.handlers.form :as form]))
 
 (def schema

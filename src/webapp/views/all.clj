@@ -8,7 +8,7 @@
             [webapp.helpers.layout :refer [with-layout table]]
             [webapp.handlers.guards :refer [require-login require-admin]]
 
-            [webapp.handlers.view :refer [id-handler]]
+            [webapp.handlers.core :refer [id-handler]]
             [webapp.handlers.document :as document]
             [webapp.handlers.form :as form]
             [webapp.handlers.table :refer [table-template document-list]]))
@@ -43,8 +43,7 @@
         doc (if (or (nil? id) (= id "new"))
               {:meta/type "unknown"}
               (db/fetch id))]
-    (when doc (-> req
-                  (assoc-in [:handler/form :data/initial] {:doc/text (doc-as-str doc)})))))
+    (when doc {:doc/text (doc-as-str doc)})))
 
 (defn save [req]
   (if (form/error? req)

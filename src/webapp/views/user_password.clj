@@ -6,7 +6,7 @@
             [webapp.db.user :as u]
 
             [webapp.handlers.guards :refer [require-login]]
-            [webapp.handlers.view :refer [view-handler]]
+            [webapp.handlers.core :refer [view-handler]]
             [webapp.handlers.form :as form]))
 
 
