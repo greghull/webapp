@@ -6,14 +6,14 @@ Will Feature:
 
 - User authentication
 - Stripe Payments
-- Email 
+- Email users
 - Document-based Database
 - Basic Administration
 
 ## Usage
 
-$ lein uberjar
-$ java -jar <path to webapp-standalone jar>
+	$ lein uberjar
+	$ java -jar <path to webapp-standalone jar>
 
 Or run it from your repl by calling (mount/start) in webapp.core
 
