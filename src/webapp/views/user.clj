@@ -40,9 +40,7 @@
     :validation [st/required]}
    :address/state
    {:label "State"
-    :widget drop-down
-    :options ["Ohio" "Kentucky" "Indiana"]
-    :validation [st/required]}
+    :validation [st/required [st/member ["Ohio" "Kentucky" "Indiana"]]]}
    :address/zip
    {:label "Zip Code"
     :validation [st/required [st/min-count 5]]}})

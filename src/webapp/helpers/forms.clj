@@ -68,7 +68,15 @@
     (or
      (when (some #{st/email} validators) email-field)
      (when (.contains (name k) "password") password-field)
+     (when (some #{st/member} validators) drop-down)
      text-field)))
+
+(defn options [v]
+  (let [coll (apply concat v)   ;; flatten list one level
+        idx (.indexOf coll st/member)]
+    (if (>= idx 0)
+      (nth coll (inc idx))
+      nil)))
 
 (defn form-schema [form]
   (into {} (for [[k v] form] [k (:validation v)])))
@@ -88,14 +96,15 @@
         label (or (-> form :schema k :label) (str/capitalize (name k)))
         value (or (-> form :data/raw k) (-> form :data/initial k))
         style (-> form :schema k :style)
-        options (-> form :schema k :options)
+        opts (options (-> form :schema k :validation))
+        ;opts (-> form :schema k :options)
         error (-> form :errors k)
         required? (some #{st/required} (flatten (-> form :schema k :validation)))
         attr-map (if required?
                    {:placeholder label :required true :style style}
                    {:placeholder label :style style})]
-    (if options
-      (widget attr-map k value error options)
+    (if opts
+      (widget attr-map k value error opts)
       (widget attr-map k value error))))
 
 (defmacro form-html
