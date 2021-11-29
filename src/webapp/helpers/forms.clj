@@ -15,6 +15,21 @@
     "is-invalid input form-control"
     "input form-control"))
 
+(defn check-box-class [error]
+  (if error
+    "is-invalid form-check-input"
+    "form-check-input"))
+
+(defn check-box
+  [& [attr-map? ks value error]]
+  (let [name (keys-to-name ks)]
+    [:div.form-check.mb-3
+     (hiccup/check-box (assoc attr-map? :class (str (check-box-class error) " " (:class attr-map?)))
+                         name (= true value) "true")
+     [:label.form-check-label {:for name} (:placeholder attr-map?)]
+     [:div.invalid-feedback error]]))
+
+
 (defn email-field
   [& [attr-map? ks value error]]
   (let [name (keys-to-name ks)]
@@ -69,6 +84,7 @@
      (when (some #{st/email} validators) email-field)
      (when (.contains (name k) "password") password-field)
      (when (some #{st/member} validators) drop-down)
+     (when (some #{st/boolean-str} validators) check-box)
      text-field)))
 
 (defn options [v]
@@ -97,7 +113,6 @@
         value (or (-> form :data/raw k) (-> form :data/initial k))
         style (-> form :schema k :style)
         opts (options (-> form :schema k :validation))
-        ;opts (-> form :schema k :options)
         error (-> form :errors k)
         required? (some #{st/required} (flatten (-> form :schema k :validation)))
         attr-map (if required?

@@ -43,7 +43,10 @@
     :validation [st/required [st/member ["Ohio" "Kentucky" "Indiana"]]]}
    :address/zip
    {:label "Zip Code"
-    :validation [st/required [st/min-count 5]]}})
+    :validation [st/required [st/min-count 5]]}
+   :user/accept
+   {:label "I accept the agreement."
+    :validation [st/required st/boolean-str]}})
 
 (defn template [req]
   (with-layout req "User Profile"
@@ -64,7 +67,8 @@
                  [:div.col-lg-5 (input req :address/city)]
                  [:div.col-lg-3 (input req :address/state)]
                  [:div.col-lg-4 (input req :address/zip)]]
-
+                [:div.row
+                 [:div.col-lg-12 (input req :user/accept)]]
                 (submit-button "Save Changes"))]))
 
 (defn success [req]
